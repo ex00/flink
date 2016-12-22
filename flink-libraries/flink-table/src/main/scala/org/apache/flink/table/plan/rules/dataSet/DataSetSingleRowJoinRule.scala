@@ -84,6 +84,7 @@ class DataSetSingleRowJoinRule
       rel.getRowType,
       join.getCondition,
       join.getRowType,
+      join.getJoinType,
       description)
   }
 }

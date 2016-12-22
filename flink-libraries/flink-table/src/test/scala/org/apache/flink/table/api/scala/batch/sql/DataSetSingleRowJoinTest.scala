@@ -193,6 +193,7 @@ class DataSetSingleRowJoinTest extends TableTestBase {
     util.verifySql(query, expected)
   }
 
+  //todo rename to testSingleRowJoinLeftOuterJoin
   @Test
   def testSingleRowJoinLeftAndRightJoin(): Unit = {
     val util = batchTestUtil()
