@@ -377,4 +377,31 @@ class JoinITCase(
 
     Assert.assertEquals(0, result)
   }
+
+  @Test
+  def testSingleRowOuterJoin(): Unit = {
+
+    val env = ExecutionEnvironment.getExecutionEnvironment
+    val tEnv = TableEnvironment.getTableEnvironment(env, config)
+
+    val sqlQuery =
+      "SELECT a, cnt FROM t1 LEFT JOIN (SELECT COUNT(*) AS cnt FROM t2) AS x ON a > cnt"
+
+    val ds1 = CollectionDataSets.get5TupleDataSet(env).toTable(tEnv).as('a, 'b, 'c, 'd, 'e)
+    val ds2 = CollectionDataSets.getSmall3TupleDataSet(env).toTable(tEnv)
+    tEnv.registerTable("t1", ds1)
+    tEnv.registerTable("t2", ds2)
+
+    val result = tEnv.sql(sqlQuery)
+
+    val expected = Seq(
+      "1,null",
+      "2,null", "2,null",
+      "3,null", "3,null", "3,null",
+      "4,3", "4,3", "4,3", "4,3",
+      "5,3", "5,3", "5,3", "5,3", "5,3").mkString("\n")
+
+    val results = result.toDataSet[Row].collect()
+    TestBaseUtils.compareResultAsText(results.asJava, expected)
+  }
 }

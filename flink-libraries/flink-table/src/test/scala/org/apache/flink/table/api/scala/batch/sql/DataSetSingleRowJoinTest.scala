@@ -199,8 +199,12 @@ class DataSetSingleRowJoinTest extends TableTestBase {
     util.addTable[(Int, Int)]("A", 'a1, 'a2)
     util.addTable[(Int, Int)]("B", 'b1, 'b2)
 
-    val queryTemplate = "SELECT a2 FROM A " +
-                          "%1$s JOIN (SELECT COUNT(*) AS cnt FROM B) AS x ON a1 < cnt"
+    val queryLeftJoin = "SELECT a2 FROM A " +
+                          "LEFT JOIN (SELECT COUNT(*) AS cnt FROM B) AS x ON a1 < cnt"
+
+//    val queryRightJoin = "SELECT COUNT(*) AS cnt FROM A " +
+//                            "RIGHT JOIN (SELECT b1 FROM B) AS x ON b1 < 5"
+
     val expected =
       unaryNode(
         "DataSetCalc",
@@ -230,8 +234,8 @@ class DataSetSingleRowJoinTest extends TableTestBase {
           term("select", "COUNT(*) AS cnt")
         )
 
-    util.verifySql(queryTemplate.format("LEFT"), expected)
-    util.verifySql(queryTemplate.format("RIGHT"), expected)
+    util.verifySql(queryLeftJoin, expected)
+    //util.verifySql(queryRightJoin, expected)
   }
 
   @Test
