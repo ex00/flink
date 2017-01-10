@@ -36,17 +36,15 @@ class DataSetSingleRowJoinRule
   override def matches(call: RelOptRuleCall): Boolean = {
     val join = call.rel(0).asInstanceOf[LogicalJoin]
 
-    //TODO remove res variable
-    val res = join.getJoinType match {
-            case JoinRelType.INNER =>
-              isSingleRow(join.getRight) || isSingleRow(join.getLeft)
-            case JoinRelType.LEFT =>
-              isSingleRow(join.getRight)
-            case JoinRelType.RIGHT =>
-              isSingleRow(join.getLeft)
-            case _ => false
-          }
-    res
+    join.getJoinType match {
+      case JoinRelType.INNER =>
+        isSingleRow(join.getRight) || isSingleRow(join.getLeft)
+      case JoinRelType.LEFT =>
+        isSingleRow(join.getRight)
+      case JoinRelType.RIGHT =>
+        isSingleRow(join.getLeft)
+      case _ => false
+    }
   }
 
   private def isInnerJoin(join: LogicalJoin) = {

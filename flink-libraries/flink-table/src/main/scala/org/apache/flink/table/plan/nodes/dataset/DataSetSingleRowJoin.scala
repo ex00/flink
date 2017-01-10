@@ -130,7 +130,7 @@ class DataSetSingleRowJoin(
       expectedType: Option[TypeInformation[Any]]): FlatMapFunction[Any, Any] = {
 
     val nullCheck = joinType match {
-      case JoinRelType.LEFT |JoinRelType.RIGHT => true
+      case JoinRelType.LEFT | JoinRelType.RIGHT => true
       case _ => false
     }
 
@@ -152,7 +152,6 @@ class DataSetSingleRowJoin(
 
     val condition = codeGenerator.generateExpression(joinCondition)
 
-
     val joinMethodBody =
       if (joinType == JoinRelType.INNER) {
       s"""
@@ -163,12 +162,27 @@ class DataSetSingleRowJoin(
          |}
          |""".stripMargin
     } else {
-      s"""
-         |${conversion.code}
-         |${codeGenerator.collectorTerm}.collect(${conversion.resultTerm});
-         |""".stripMargin
-    }
+        val singleNode =
+          if (leftIsSingle) {
+            leftNode
+          }
+          else {
+            rightNode
+          }
+        
+        val notSuitedToCondition =
+          for (field <- singleNode.getRowType.getFieldList)
+            yield s"${conversion.resultTerm}.setField(${getRowType.getFieldNames.indexOf(field.getName)},null);"
 
+        s"""
+           |${condition.code}
+           |${conversion.code}
+           |if(!${condition.resultTerm}){
+           |${notSuitedToCondition.mkString("\n")}
+           |}
+           |${codeGenerator.collectorTerm}.collect(${conversion.resultTerm});
+           |""".stripMargin
+      }
 
     val genFunction = codeGenerator.generateFunction(
       ruleDescription,

@@ -193,18 +193,14 @@ class DataSetSingleRowJoinTest extends TableTestBase {
     util.verifySql(query, expected)
   }
 
-  //todo rename to testSingleRowJoinLeftOuterJoin
   @Test
-  def testSingleRowJoinLeftAndRightJoin(): Unit = {
+  def testSingleRowJoinLeftOuterJoin(): Unit = {
     val util = batchTestUtil()
     util.addTable[(Int, Int)]("A", 'a1, 'a2)
     util.addTable[(Int, Int)]("B", 'b1, 'b2)
 
     val queryLeftJoin = "SELECT a2 FROM A " +
                           "LEFT JOIN (SELECT COUNT(*) AS cnt FROM B) AS x ON a1 < cnt"
-
-//    val queryRightJoin = "SELECT COUNT(*) AS cnt FROM A " +
-//                            "RIGHT JOIN (SELECT b1 FROM B) AS x ON b1 < 5"
 
     val expected =
       unaryNode(
@@ -236,7 +232,6 @@ class DataSetSingleRowJoinTest extends TableTestBase {
         )
 
     util.verifySql(queryLeftJoin, expected)
-    //util.verifySql(queryRightJoin, expected)
   }
 
   @Test

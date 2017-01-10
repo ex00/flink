@@ -173,24 +173,22 @@ class DataSetJoin(
       returnType,
       joinRowType.getFieldNames)
 
-    var body = ""
-
-    if (joinInfo.isEqui) {
+    val body = if (joinInfo.isEqui) {
       // only equality condition
-      body = s"""
-           |${conversion.code}
-           |${generator.collectorTerm}.collect(${conversion.resultTerm});
-           |""".stripMargin
+      s"""
+         |${conversion.code}
+         |${generator.collectorTerm}.collect(${conversion.resultTerm});
+         |""".stripMargin
     }
     else {
       val condition = generator.generateExpression(joinCondition)
-      body = s"""
-           |${condition.code}
-           |if (${condition.resultTerm}) {
-           |  ${conversion.code}
-           |  ${generator.collectorTerm}.collect(${conversion.resultTerm});
-           |}
-           |""".stripMargin
+      s"""
+         |${condition.code}
+         |if (${condition.resultTerm}) {
+         |  ${conversion.code}
+         |  ${generator.collectorTerm}.collect(${conversion.resultTerm});
+         |}
+         |""".stripMargin
     }
     val genFunction = generator.generateFunction(
       ruleDescription,
