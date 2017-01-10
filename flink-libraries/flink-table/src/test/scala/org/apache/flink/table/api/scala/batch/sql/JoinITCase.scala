@@ -385,7 +385,8 @@ class JoinITCase(
     val tEnv = TableEnvironment.getTableEnvironment(env, config)
 
     val sqlQuery =
-      "SELECT  a,cnt FROM t1 LEFT JOIN (SELECT COUNT(*) AS cnt FROM t2) AS x ON a > cnt"
+      "SELECT  a,cnt FROM t1 " +
+        "LEFT JOIN (SELECT COUNT(*) AS cnt FROM t2) AS x ON a > cnt"
 
     val ds1 = CollectionDataSets.get5TupleDataSet(env).toTable(tEnv).as('a, 'b, 'c, 'd, 'e)
     val ds2 = CollectionDataSets.getSmall3TupleDataSet(env).toTable(tEnv)
@@ -412,7 +413,8 @@ class JoinITCase(
     val tEnv = TableEnvironment.getTableEnvironment(env, config)
 
     val sqlQuery =
-      "SELECT  a,cnt, cnt2 FROM t1 LEFT JOIN (SELECT COUNT(*) AS cnt,COUNT(*) AS cnt2 FROM t2) AS x ON a > cnt"
+      "SELECT  a,cnt, cnt2 FROM t1 " +
+        "LEFT JOIN (SELECT COUNT(*) AS cnt,COUNT(*) AS cnt2 FROM t2) AS x ON a > cnt"
 
     val ds1 = CollectionDataSets.get5TupleDataSet(env).toTable(tEnv).as('a, 'b, 'c, 'd, 'e)
     val ds2 = CollectionDataSets.getSmall3TupleDataSet(env).toTable(tEnv)
@@ -427,6 +429,38 @@ class JoinITCase(
       "3,null,null", "3,null,null", "3,null,null",
       "4,3,3", "4,3,3", "4,3,3", "4,3,3",
       "5,3,3", "5,3,3", "5,3,3", "5,3,3", "5,3,3").mkString("\n")
+
+    val results = result.toDataSet[Row].collect()
+    TestBaseUtils.compareResultAsText(results.asJava, expected)
+  }
+
+  @Test
+  def testSingleRowLeftOuterJoinWithNull(): Unit = {
+
+    val env = ExecutionEnvironment.getExecutionEnvironment
+    val tEnv = TableEnvironment.getTableEnvironment(env, config)
+
+    val sqlQuery =
+      "SELECT  a,cnt FROM t1 " +
+        "LEFT JOIN (SELECT case count(*) when 3 then null " +
+        "else 1 end AS cnt " +
+        "FROM t2) AS x " +
+        "ON case a when 3 then null " +
+        "else a end > cnt"
+
+    val ds1 = CollectionDataSets.get5TupleDataSet(env).toTable(tEnv).as('a, 'b, 'c, 'd, 'e)
+    val ds2 = CollectionDataSets.getSmall3TupleDataSet(env).toTable(tEnv)
+    tEnv.registerTable("t1", ds1)
+    tEnv.registerTable("t2", ds2)
+
+    val result = tEnv.sql(sqlQuery)
+
+    val expected = Seq(
+      "1,null",
+      "2,null", "2,null",
+      "3,null", "3,null", "3,null",
+      "4,null", "4,null", "4,null", "4,null",
+      "5,null", "5,null", "5,null", "5,null", "5,null").mkString("\n")
 
     val results = result.toDataSet[Row].collect()
     TestBaseUtils.compareResultAsText(results.asJava, expected)

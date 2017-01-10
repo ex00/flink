@@ -169,10 +169,11 @@ class DataSetSingleRowJoin(
           else {
             rightNode
           }
-        
-        val notSuitedToCondition =
-          for (field <- singleNode.getRowType.getFieldList)
-            yield s"${conversion.resultTerm}.setField(${getRowType.getFieldNames.indexOf(field.getName)},null);"
+        val notSuitedToCondition = singleNode
+          .getRowType
+          .getFieldList
+          .map(field => getRowType.getFieldNames.indexOf(field.getName))
+          .map(i => s"${conversion.resultTerm}.setField($i,null);")
 
         s"""
            |${condition.code}
